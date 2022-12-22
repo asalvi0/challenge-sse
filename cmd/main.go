@@ -10,9 +10,8 @@ import (
 	"github.com/r3labs/sse/v2"
 )
 
+// TODO: read this value from a config/secrets store or env variable
 const streamUrl = "http://live-test-scores.herokuapp.com/scores"
-
-var sseClient = sse.NewClient(streamUrl)
 
 func main() {
 	// start api server
@@ -20,6 +19,7 @@ func main() {
 	go server.Start()
 
 	// subscribe to SSE stream
+	sseClient := sse.NewClient(streamUrl)
 	sseClient.SubscribeRaw(func(msg *sse.Event) {
 		var exam model.Data
 
