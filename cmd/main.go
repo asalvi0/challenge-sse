@@ -23,7 +23,7 @@ func main() {
 	sseClient.SubscribeRaw(func(msg *sse.Event) {
 		var exam model.Data
 
-		err := json.Unmarshal([]byte(msg.Data), &exam)
+		err := json.Unmarshal(msg.Data, &exam)
 		if err != nil {
 			log.Println(err)
 			return
