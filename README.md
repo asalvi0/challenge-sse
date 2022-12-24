@@ -1,4 +1,4 @@
-### ChannelMeter Coding Test
+### Coding Test
 
 You may build this application in Golang/Python. We would say try with Go first but if you get stuck you can move to Python. You may also use any open-source libraries or resources that you find helpful.
 
