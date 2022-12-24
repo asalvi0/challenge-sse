@@ -4,54 +4,121 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
+	"githb.com/asalvi0/challenge-sse/internal/model"
+	"githb.com/asalvi0/challenge-sse/internal/services"
+
+	"github.com/goccy/go-json"
 	"github.com/julienschmidt/httprouter"
 )
 
 type Server struct {
-	Port int
+	port    int
+	service *services.ExamService
 }
 
-func NewServer(port int) *Server {
-	return &Server{port}
+func NewServer(port int, service *services.ExamService) *Server {
+	return &Server{port, service}
 }
 
 func (s *Server) Start() {
 	router := httprouter.New()
 
-	router.GET("/students", students)
-	router.GET("/students/:id", student)
+	router.GET("/students", s.getStudents)
+	router.GET("/students/:id", s.getStudent)
 
-	router.GET("/exams", exams)
-	router.GET("/exams/:id", exam)
+	router.GET("/exams", s.getExams)
+	router.GET("/exams/:number", s.getExam)
 
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", s.Port), router))
+	router.GET("/stop-sse", s.stopSSESubscription)
+
+	// TODO: move panic to main.go
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", s.port), router))
 }
 
-func students(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprintf(w, "Students")
+func (s *Server) stopSSESubscription(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	s.service.StopSSESubscription()
+
+	fmt.Fprintf(w, string("OK"))
 }
 
-func student(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+func (s *Server) getStudents(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	students := s.service.GetStudents()
+
+	resp, err := json.Marshal(students)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "internal server error")
+	}
+
+	fmt.Fprintf(w, string(resp))
+}
+
+func (s *Server) getStudent(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	id := params.ByName("id")
 	if len(id) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "url param 'id' is missing")
 		return
 	}
 
-	fmt.Fprintf(w, "Student: %s", id)
+	scores, average := s.service.GetStudent(id)
+	student := model.StudentResponse{
+		Results: scores,
+		Average: average,
+	}
+
+	resp, err := json.Marshal(student)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "internal server error")
+		return
+	}
+
+	fmt.Fprintf(w, string(resp))
 }
 
-func exams(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprintf(w, "Exams")
+func (s *Server) getExams(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	exams := s.service.GetExams()
+
+	resp, err := json.Marshal(exams)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "internal server error")
+		return
+	}
+
+	fmt.Fprintf(w, string(resp))
 }
 
-func exam(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	number := params.ByName("number")
-	if len(number) == 0 {
+func (s *Server) getExam(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	pNumber := params.ByName("number")
+	if len(pNumber) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "url param 'number' is missing")
 		return
 	}
 
-	fmt.Fprintf(w, "Exam: %s", number)
+	number, err := strconv.Atoi(pNumber)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "internal server error")
+		return
+	}
+
+	scores, average := s.service.GetExam(number)
+	student := model.StudentResponse{
+		Results: scores,
+		Average: average,
+	}
+
+	resp, err := json.Marshal(student)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "internal server error")
+		return
+	}
+
+	fmt.Fprintf(w, string(resp))
 }
