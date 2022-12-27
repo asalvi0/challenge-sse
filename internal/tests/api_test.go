@@ -1,16 +1,17 @@
-package api
+package tests
 
 import (
 	"net/http"
 	"testing"
 
+	"github.com/asalvi0/challenge-sse/internal/api"
 	"github.com/julienschmidt/httprouter"
 )
 
 func TestServer_Start(t *testing.T) {
 	tests := []struct {
 		name string
-		s    *Server
+		s    *api.Server
 	}{
 		// TODO: Add test cases.
 	}
@@ -29,7 +30,7 @@ func TestServer_getStudents(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		s    *Server
+		s    *api.Server
 		args args
 	}{
 		// TODO: Add test cases.
@@ -49,7 +50,7 @@ func TestServer_getStudent(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		s    *Server
+		s    *api.Server
 		args args
 	}{
 		// TODO: Add test cases.
@@ -69,7 +70,7 @@ func TestServer_getExams(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		s    *Server
+		s    *api.Server
 		args args
 	}{
 		// TODO: Add test cases.
@@ -89,7 +90,7 @@ func TestServer_getExam(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		s    *Server
+		s    *api.Server
 		args args
 	}{
 		// TODO: Add test cases.

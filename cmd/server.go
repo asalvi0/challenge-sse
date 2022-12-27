@@ -1,23 +1,28 @@
 package main
 
 import (
-	"githb.com/asalvi0/challenge-sse/internal/api"
-	"githb.com/asalvi0/challenge-sse/internal/services"
+	"github.com/asalvi0/challenge-sse/internal/api"
+	"github.com/asalvi0/challenge-sse/internal/controllers"
+	"github.com/asalvi0/challenge-sse/internal/models"
 )
 
-// TODO: read this value from a config/secrets store or env variable
+// TODO: read config from a config/secrets store or env variable
 const (
 	streamUrl = "http://live-test-scores.herokuapp.com/scores"
-	apiPort   = 8080
+	port      = 8080
 )
 
 func main() {
-	service := services.NewExamService()
+	eventsCh := make(chan models.Event)
+
+	eventController := controllers.NewEventController()
+	examController := controllers.NewExamController(eventsCh)
+	studentController := controllers.NewStudentController(eventsCh)
 
 	// subscribe to SSE stream
-	service.SubscribeSSE(streamUrl)
+	eventController.StartSSESubscription(streamUrl, eventsCh)
 
-	// start api server
-	server := api.NewServer(apiPort, service)
-	server.Start()
+	// start API server
+	apiServer := api.NewServer(port, eventController, examController, studentController)
+	apiServer.Start()
 }

@@ -6,20 +6,31 @@ import (
 	"net/http"
 	"strconv"
 
-	"githb.com/asalvi0/challenge-sse/internal/model"
-	"githb.com/asalvi0/challenge-sse/internal/services"
+	"github.com/asalvi0/challenge-sse/internal/controllers"
+	"github.com/asalvi0/challenge-sse/internal/models"
 
 	"github.com/goccy/go-json"
 	"github.com/julienschmidt/httprouter"
 )
 
 type Server struct {
-	port    int
-	service *services.ExamService
+	port              int
+	eventController   *controllers.EventController
+	examController    *controllers.ExamController
+	studentController *controllers.StudentController
 }
 
-func NewServer(port int, service *services.ExamService) *Server {
-	return &Server{port, service}
+func NewServer(port int,
+	eventController *controllers.EventController,
+	examController *controllers.ExamController,
+	studentController *controllers.StudentController,
+) *Server {
+	return &Server{
+		port,
+		eventController,
+		examController,
+		studentController,
+	}
 }
 
 func (s *Server) Start() {
@@ -38,13 +49,13 @@ func (s *Server) Start() {
 }
 
 func (s *Server) stopSSESubscription(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	s.service.StopSSESubscription()
+	s.eventController.StopSSESubscription()
 
 	fmt.Fprintf(w, string("OK"))
 }
 
 func (s *Server) getStudents(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	students := s.service.GetStudents()
+	students := s.studentController.GetStudentsID()
 
 	resp, err := json.Marshal(students)
 	if err != nil {
@@ -63,8 +74,8 @@ func (s *Server) getStudent(w http.ResponseWriter, r *http.Request, params httpr
 		return
 	}
 
-	scores, average := s.service.GetStudent(id)
-	student := model.StudentResponse{
+	scores, average := s.studentController.GetStudent(id)
+	student := models.StudentResponse{
 		Results: scores,
 		Average: average,
 	}
@@ -80,7 +91,7 @@ func (s *Server) getStudent(w http.ResponseWriter, r *http.Request, params httpr
 }
 
 func (s *Server) getExams(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	exams := s.service.GetExams()
+	exams := s.examController.GetExamNumbers()
 
 	resp, err := json.Marshal(exams)
 	if err != nil {
@@ -93,22 +104,16 @@ func (s *Server) getExams(w http.ResponseWriter, r *http.Request, _ httprouter.P
 }
 
 func (s *Server) getExam(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	pNumber := params.ByName("number")
-	if len(pNumber) == 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, "url param 'number' is missing")
-		return
-	}
-
-	number, err := strconv.Atoi(pNumber)
+	number, err := strconv.Atoi(params.ByName("number"))
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "internal server error")
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "invalid parameter")
 		return
 	}
 
-	scores, average := s.service.GetExam(number)
-	student := model.StudentResponse{
+	students := s.studentController.GetStudents()
+	scores, average := s.examController.GetExam(number, students)
+	student := models.StudentResponse{
 		Results: scores,
 		Average: average,
 	}

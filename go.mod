@@ -1,4 +1,4 @@
-module githb.com/asalvi0/challenge-sse
+module github.com/asalvi0/challenge-sse
 
 go 1.19
 
