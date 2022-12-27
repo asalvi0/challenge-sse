@@ -62,10 +62,12 @@ func (c *EventController) StartSSESubscription(url string, eventsCh chan models.
 			event, err := models.ParseEvent(msg.Data)
 			if err != nil {
 				log.Println(err)
+				return
 			}
 
 			if len(event.StudentId) == 0 || event.Number <= 0 {
 				log.Println(errors.New("invalid message data"))
+				return
 			}
 
 			eventsCh <- event
