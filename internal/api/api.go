@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"githb.com/asalvi0/challenge-sse/internal/model"
-	"githb.com/asalvi0/challenge-sse/internal/services"
+	"github.com/asalvi0/challenge-sse/internal/model"
+	"github.com/asalvi0/challenge-sse/internal/services"
 
 	"github.com/goccy/go-json"
 	"github.com/julienschmidt/httprouter"

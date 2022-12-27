@@ -1,8 +1,8 @@
 package main
 
 import (
-	"githb.com/asalvi0/challenge-sse/internal/api"
-	"githb.com/asalvi0/challenge-sse/internal/services"
+	"github.com/asalvi0/challenge-sse/internal/api"
+	"github.com/asalvi0/challenge-sse/internal/services"
 )
 
 // TODO: read this value from a config/secrets store or env variable

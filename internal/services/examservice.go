@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"time"
 
-	"githb.com/asalvi0/challenge-sse/internal/model"
+	"github.com/asalvi0/challenge-sse/internal/model"
 
 	"github.com/r3labs/sse/v2"
 )
