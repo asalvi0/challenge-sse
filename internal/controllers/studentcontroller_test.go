@@ -1,20 +1,19 @@
-package tests
+package controllers
 
 import (
 	"testing"
 	"time"
 
-	"github.com/asalvi0/challenge-sse/internal/controllers"
 	"github.com/asalvi0/challenge-sse/internal/models"
 )
 
 func TestStudentController_GetStudentsID(t *testing.T) {
 	eventsCh := make(chan models.Event)
-	eventController := controllers.NewEventController()
+	eventController := NewEventController()
 	eventController.StartSSESubscription(streamUrl, eventsCh)
 	defer eventController.StopSSESubscription()
 
-	studentController := controllers.NewStudentController(eventsCh)
+	studentController := NewStudentController(eventsCh)
 
 	tests := []struct {
 		name              string

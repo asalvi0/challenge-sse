@@ -1,9 +1,8 @@
-package tests
+package controllers
 
 import (
 	"testing"
 
-	"github.com/asalvi0/challenge-sse/internal/controllers"
 	"github.com/asalvi0/challenge-sse/internal/models"
 )
 
@@ -11,7 +10,7 @@ const streamUrl = "http://live-test-scores.herokuapp.com/scores"
 
 func TestExamService_StartSSESubscription(t *testing.T) {
 	eventsCh := make(chan models.Event)
-	eventController := controllers.NewEventController()
+	eventController := NewEventController()
 
 	tests := []struct {
 		name    string
