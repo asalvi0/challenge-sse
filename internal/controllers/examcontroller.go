@@ -1,6 +1,10 @@
 package controllers
 
-import "github.com/asalvi0/challenge-sse/internal/models"
+import (
+	"errors"
+
+	"github.com/asalvi0/challenge-sse/internal/models"
+)
 
 type ExamController struct {
 	exams    models.ExamsRepository
@@ -12,12 +16,12 @@ func NewExamController(eventsCh chan models.Event) *ExamController {
 		exams:    make(models.ExamsRepository, 0),
 		eventsCh: eventsCh,
 	}
-	controller.Listen()
+	controller.listen()
 
 	return &controller
 }
 
-func (c *ExamController) Listen() {
+func (c *ExamController) listen() {
 	go func() {
 		for event := range c.eventsCh {
 			c.AddExam(event)
@@ -25,8 +29,12 @@ func (c *ExamController) Listen() {
 	}()
 }
 
-func (c *ExamController) AddExam(event models.Event) {
-	// append the exam data to the map, empty struct uses no memory
+func (c *ExamController) AddExam(event models.Event) error {
+	if event.Number < 0 || len(event.StudentId) == 0 {
+		return errors.New("invalid event")
+	}
+
+	// append the exam data to the map
 	exam := c.exams[event.Number]
 	if exam == nil {
 		c.exams[event.Number] = &models.ExamRecord{}
@@ -36,6 +44,8 @@ func (c *ExamController) AddExam(event models.Event) {
 	// update the exam summary
 	exam.Count += 1
 	exam.Average = (exam.Average + event.Score) / float32(exam.Count)
+
+	return nil
 }
 
 func (c *ExamController) GetExamNumbers() (exams []int) {

@@ -1,6 +1,10 @@
 package controllers
 
-import "github.com/asalvi0/challenge-sse/internal/models"
+import (
+	"errors"
+
+	"github.com/asalvi0/challenge-sse/internal/models"
+)
 
 type StudentController struct {
 	students models.StudentsRepository
@@ -12,12 +16,12 @@ func NewStudentController(eventsCh chan models.Event) *StudentController {
 		students: make(models.StudentsRepository, 0),
 		eventsCh: eventsCh,
 	}
-	controller.Listen()
+	controller.listen()
 
 	return &controller
 }
 
-func (c *StudentController) Listen() {
+func (c *StudentController) listen() {
 	go func() {
 		for event := range c.eventsCh {
 			c.AddStudent(event)
@@ -25,7 +29,11 @@ func (c *StudentController) Listen() {
 	}()
 }
 
-func (c *StudentController) AddStudent(event models.Event) {
+func (c *StudentController) AddStudent(event models.Event) error {
+	if event.Number < 0 || len(event.StudentId) == 0 {
+		return errors.New("invalid event")
+	}
+
 	// append the exam data for the student
 	student := c.students[event.StudentId]
 	if student == nil {
@@ -36,6 +44,8 @@ func (c *StudentController) AddStudent(event models.Event) {
 	// update the student record
 	student.Exams = append(student.Exams, event.ExamResult)
 	student.Average += (student.Average + event.Score) / float32(len(student.Exams))
+
+	return nil
 }
 
 func (c *StudentController) GetStudentsID() (students []string) {
