@@ -8,10 +8,10 @@ import (
 
 type StudentController struct {
 	students models.StudentsRepository
-	eventsCh chan models.Event
+	eventsCh <-chan models.Event
 }
 
-func NewStudentController(eventsCh chan models.Event) *StudentController {
+func NewStudentController(eventsCh <-chan models.Event) *StudentController {
 	controller := StudentController{
 		students: make(models.StudentsRepository, 0),
 		eventsCh: eventsCh,

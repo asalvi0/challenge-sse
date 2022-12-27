@@ -8,10 +8,10 @@ import (
 
 type ExamController struct {
 	exams    models.ExamsRepository
-	eventsCh chan models.Event
+	eventsCh <-chan models.Event
 }
 
-func NewExamController(eventsCh chan models.Event) *ExamController {
+func NewExamController(eventsCh <-chan models.Event) *ExamController {
 	controller := ExamController{
 		exams:    make(models.ExamsRepository, 0),
 		eventsCh: eventsCh,

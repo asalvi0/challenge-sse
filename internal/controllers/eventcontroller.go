@@ -46,7 +46,7 @@ func validateSSEUrl(sseUrl string) (err error) {
 	return nil
 }
 
-func (c *EventController) StartSSESubscription(url string, eventsCh chan models.Event) (err error) {
+func (c *EventController) StartSSESubscription(url string, eventsCh chan<- models.Event) (err error) {
 	err = validateSSEUrl(url)
 	if err != nil {
 		return err
