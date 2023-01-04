@@ -42,10 +42,17 @@ func (s *Server) Start() {
 	router.GET("/exams", s.getExams)
 	router.GET("/exams/:number", s.getExam)
 
+	router.GET("/start-sse", s.startSSESubscription)
 	router.GET("/stop-sse", s.stopSSESubscription)
 
 	// TODO: move panic to main.go
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", s.port), router))
+}
+
+func (s *Server) startSSESubscription(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	s.eventController.StartSSESubscription()
+
+	fmt.Fprintf(w, string("OK"))
 }
 
 func (s *Server) stopSSESubscription(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

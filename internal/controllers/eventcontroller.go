@@ -13,14 +13,18 @@ import (
 )
 
 type EventController struct {
+	streamUrl string
 	sseClient *sse.Client
+	eventsCh  chan models.Event
 	ctx       context.Context
 	ctxCancel context.CancelFunc
 }
 
-func NewEventController() *EventController {
-	controller := EventController{}
+func NewEventController(url string) *EventController {
+	controller := EventController{streamUrl: url}
+
 	controller.ctx, controller.ctxCancel = context.WithCancel(context.Background())
+	controller.eventsCh = make(chan models.Event)
 
 	return &controller
 }
@@ -46,15 +50,19 @@ func validateSSEUrl(sseUrl string) (err error) {
 	return nil
 }
 
-func (c *EventController) StartSSESubscription(url string, eventsCh chan<- models.Event) (err error) {
-	err = validateSSEUrl(url)
+func (c *EventController) StopSSESubscription() {
+	c.ctxCancel()
+}
+
+func (c *EventController) StartSSESubscription() (eventsCh chan models.Event, err error) {
+	err = validateSSEUrl(c.streamUrl)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	c.sseClient = sse.NewClient(url)
+	c.sseClient = sse.NewClient(c.streamUrl)
 	if c.sseClient == nil {
-		return errors.New("failed to create SSE client")
+		return nil, errors.New("failed to create SSE client")
 	}
 
 	go func() {
@@ -74,9 +82,5 @@ func (c *EventController) StartSSESubscription(url string, eventsCh chan<- model
 		})
 	}()
 
-	return nil
-}
-
-func (c *EventController) StopSSESubscription() {
-	c.ctxCancel()
+	return c.eventsCh, nil
 }

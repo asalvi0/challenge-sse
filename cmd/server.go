@@ -1,9 +1,10 @@
 package main
 
 import (
+	"log"
+
 	"github.com/asalvi0/challenge-sse/internal/api"
 	"github.com/asalvi0/challenge-sse/internal/controllers"
-	"github.com/asalvi0/challenge-sse/internal/models"
 )
 
 // TODO: read config from a config/secrets store or env variable
@@ -13,14 +14,16 @@ const (
 )
 
 func main() {
-	eventsCh := make(chan models.Event)
-
-	eventController := controllers.NewEventController()
-	examController := controllers.NewExamController(eventsCh)
-	studentController := controllers.NewStudentController(eventsCh)
+	eventController := controllers.NewEventController(streamUrl)
 
 	// subscribe to SSE stream
-	eventController.StartSSESubscription(streamUrl, eventsCh)
+	eventsCh, err := eventController.StartSSESubscription()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	examController := controllers.NewExamController(eventsCh)
+	studentController := controllers.NewStudentController(eventsCh)
 
 	// start API server
 	apiServer := api.NewServer(port, eventController, examController, studentController)
