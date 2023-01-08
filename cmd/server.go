@@ -16,16 +16,21 @@ const (
 func main() {
 	eventController := controllers.NewEventController(streamUrl)
 
-	// subscribe to SSE stream
 	eventsCh, err := eventController.StartSSESubscription()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	examController := controllers.NewExamController(eventsCh)
-	studentController := controllers.NewStudentController(eventsCh)
+	examController, err := controllers.NewExamController(eventsCh)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// start API server
+	studentController, err := controllers.NewStudentController(eventsCh)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	apiServer := api.NewServer(port, eventController, examController, studentController)
 	apiServer.Start()
 }

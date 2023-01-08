@@ -11,14 +11,18 @@ type StudentController struct {
 	eventsCh <-chan models.Event
 }
 
-func NewStudentController(eventsCh <-chan models.Event) *StudentController {
+func NewStudentController(eventsCh <-chan models.Event) (*StudentController, error) {
+	if eventsCh == nil {
+		return nil, errors.New("nil channel is not allowed")
+	}
+
 	controller := StudentController{
 		students: make(models.StudentsRepository, 0),
 		eventsCh: eventsCh,
 	}
 	controller.listen()
 
-	return &controller
+	return &controller, nil
 }
 
 func (c *StudentController) listen() {
@@ -30,8 +34,14 @@ func (c *StudentController) listen() {
 }
 
 func (c *StudentController) AddStudent(event models.Event) error {
-	if event.Number < 0 || len(event.StudentId) == 0 {
-		return errors.New("invalid event")
+	if len(event.StudentId) <= 0 {
+		return errors.New("invalid event: studentId is required")
+	}
+	if event.Number == 0 {
+		return errors.New("invalid event: exam number is required")
+	}
+	if event.Score <= 0 {
+		return errors.New("invalid event: exam score is required")
 	}
 
 	// append the exam data for the student
@@ -39,6 +49,7 @@ func (c *StudentController) AddStudent(event models.Event) error {
 	if student == nil {
 		c.students[event.StudentId] = &models.StudentRecord{}
 		student = c.students[event.StudentId]
+		student.Id = event.StudentId
 	}
 
 	// update the student record

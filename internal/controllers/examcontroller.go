@@ -11,14 +11,18 @@ type ExamController struct {
 	eventsCh <-chan models.Event
 }
 
-func NewExamController(eventsCh <-chan models.Event) *ExamController {
+func NewExamController(eventsCh <-chan models.Event) (*ExamController, error) {
+	if eventsCh == nil {
+		return nil, errors.New("nil channel is not allowed")
+	}
+
 	controller := ExamController{
 		exams:    make(models.ExamsRepository, 0),
 		eventsCh: eventsCh,
 	}
 	controller.listen()
 
-	return &controller
+	return &controller, nil
 }
 
 func (c *ExamController) listen() {
@@ -30,8 +34,14 @@ func (c *ExamController) listen() {
 }
 
 func (c *ExamController) AddExam(event models.Event) error {
-	if event.Number < 0 || len(event.StudentId) == 0 {
-		return errors.New("invalid event")
+	if len(event.StudentId) == 0 {
+		return errors.New("invalid event: studentId is required")
+	}
+	if event.Number <= 0 {
+		return errors.New("invalid event: exam number is required")
+	}
+	if event.Score <= 0 {
+		return errors.New("invalid event: exam score is required")
 	}
 
 	// append the exam data to the map

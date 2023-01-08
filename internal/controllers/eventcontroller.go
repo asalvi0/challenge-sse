@@ -54,8 +54,8 @@ func (c *EventController) StopSSESubscription() {
 	c.ctxCancel()
 }
 
-func (c *EventController) StartSSESubscription() (eventsCh chan models.Event, err error) {
-	err = validateSSEUrl(c.streamUrl)
+func (c *EventController) StartSSESubscription() (chan models.Event, error) {
+	err := validateSSEUrl(c.streamUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (c *EventController) StartSSESubscription() (eventsCh chan models.Event, er
 				return
 			}
 
-			eventsCh <- event
+			c.eventsCh <- event
 		})
 	}()
 
