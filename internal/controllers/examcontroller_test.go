@@ -200,7 +200,7 @@ func TestExamController_GetExamNumbers(t *testing.T) {
 			}
 
 			if (len(gotExams) > 0) != tt.wantExams {
-				t.Errorf("ExamService.GetExams() = %v, wantExams = %t", gotExams, tt.wantExams)
+				t.Errorf("ExamController.GetExams() = %v, wantExams = %t", gotExams, tt.wantExams)
 			}
 		})
 	}
