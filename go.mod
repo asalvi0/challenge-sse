@@ -9,6 +9,6 @@ require (
 )
 
 require (
-	golang.org/x/net v0.4.0 // indirect
+	golang.org/x/net v0.5.0 // indirect
 	gopkg.in/cenkalti/backoff.v1 v1.1.0 // indirect
 )
