@@ -7,10 +7,5 @@ type (
 		Exams   []ExamResult `json:"exams"`
 	}
 
-	StudentResponse struct {
-		Results []float32 `json:"results"`
-		Average float32   `json:"average"`
-	}
-
 	StudentsRepository map[string]*StudentRecord
 )

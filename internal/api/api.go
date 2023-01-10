@@ -45,35 +45,35 @@ func (s *Server) Start() {
 	router.GET("/start-sse", s.startSSESubscription)
 	router.GET("/stop-sse", s.stopSSESubscription)
 
-	// TODO: move panic to main.go
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", s.port), router))
 }
 
-func (s *Server) startSSESubscription(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	s.eventController.StartSSESubscription()
-
-	fmt.Fprintf(w, string("OK"))
-}
-
-func (s *Server) stopSSESubscription(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	s.eventController.StopSSESubscription()
-
-	fmt.Fprintf(w, string("OK"))
-}
-
 func (s *Server) getStudents(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	if s == nil || s.studentController == nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "internal server error")
+		return
+	}
+
 	students := s.studentController.GetStudentsID()
 
 	resp, err := json.Marshal(students)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "internal server error")
+		return
 	}
 
 	fmt.Fprintf(w, string(resp))
 }
 
 func (s *Server) getStudent(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	if s == nil || s.studentController == nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "internal server error")
+		return
+	}
+
 	id := params.ByName("id")
 	if len(id) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
@@ -82,7 +82,7 @@ func (s *Server) getStudent(w http.ResponseWriter, r *http.Request, params httpr
 	}
 
 	scores, average := s.studentController.GetStudent(id)
-	student := models.StudentResponse{
+	student := models.ExamResultsResponse{
 		Results: scores,
 		Average: average,
 	}
@@ -98,6 +98,12 @@ func (s *Server) getStudent(w http.ResponseWriter, r *http.Request, params httpr
 }
 
 func (s *Server) getExams(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	if s == nil || s.examController == nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "internal server error")
+		return
+	}
+
 	exams := s.examController.GetExamNumbers()
 
 	resp, err := json.Marshal(exams)
@@ -111,6 +117,12 @@ func (s *Server) getExams(w http.ResponseWriter, r *http.Request, _ httprouter.P
 }
 
 func (s *Server) getExam(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	if s == nil || s.examController == nil || s.studentController == nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "internal server error")
+		return
+	}
+
 	number, err := strconv.Atoi(params.ByName("number"))
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -120,7 +132,7 @@ func (s *Server) getExam(w http.ResponseWriter, r *http.Request, params httprout
 
 	students := s.studentController.GetStudents()
 	scores, average := s.examController.GetExam(number, students)
-	student := models.StudentResponse{
+	student := models.ExamResultsResponse{
 		Results: scores,
 		Average: average,
 	}
@@ -133,4 +145,28 @@ func (s *Server) getExam(w http.ResponseWriter, r *http.Request, params httprout
 	}
 
 	fmt.Fprintf(w, string(resp))
+}
+
+func (s *Server) startSSESubscription(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	if s == nil || s.eventController == nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "internal server error")
+		return
+	}
+
+	s.eventController.StartSSESubscription()
+
+	fmt.Fprintf(w, string("OK"))
+}
+
+func (s *Server) stopSSESubscription(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	if s == nil || s.eventController == nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "internal server error")
+		return
+	}
+
+	s.eventController.StopSSESubscription()
+
+	fmt.Fprintf(w, string("OK"))
 }

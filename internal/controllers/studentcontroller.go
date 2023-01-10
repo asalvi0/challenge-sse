@@ -86,6 +86,10 @@ func (c *StudentController) GetStudent(id string) (scores []float32, average flo
 }
 
 func (c *StudentController) GetStudents() (students []models.StudentRecord) {
+	if len(c.students) == 0 {
+		return students
+	}
+
 	for _, student := range c.students {
 		students = append(students, *student)
 	}
